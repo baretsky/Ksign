@@ -106,6 +106,8 @@ struct Options: Codable, Equatable {
     var experiment_replaceSubstrateWithEllekit: Bool
     /// If Ksign should use background audio
     var backgroundAudio: Bool
+    /// If Ksign should show logs when signing
+    var signingLogs: Bool
 	// default
 	static let defaultOptions = Options(
 		appAppearance: "Default",
@@ -135,7 +137,8 @@ struct Options: Codable, Equatable {
 		extractionLibrary: "Zip",
         experiment_supportLiquidGlass: false,
         experiment_replaceSubstrateWithEllekit: false,
-        backgroundAudio: true
+        backgroundAudio: true,
+        signingLogs: false
 	)
 	// extraction library values
 	static let extractionLibraryValues = ["Zip", "ZIPFoundation"]

@@ -12,6 +12,8 @@ import NimbleViews
 // MARK: - View
 struct SigningView: View {
 	@Environment(\.dismiss) var dismiss
+	@Namespace var _namespace
+
 	@StateObject private var _optionsManager = OptionsManager.shared
 	
 	@State private var _temporaryOptions: Options = OptionsManager.shared.options
@@ -19,6 +21,7 @@ struct SigningView: View {
 	@State private var _isAltPickerPresenting = false
 	@State private var _isFilePickerPresenting = false
 	@State private var _isImagePickerPresenting = false
+	@State private var _isLogsPresenting = false
 	@State private var _isSigning = false
 	@State private var _selectedPhoto: PhotosPickerItem? = nil
 	@State var appIcon: UIImage?
@@ -54,11 +57,22 @@ struct SigningView: View {
 				_cert()
 				_customizationProperties(for: app)
 			}
+			.disabled(_isSigning)
 			.safeAreaInset(edge: .bottom) {
-				Button() {
-					_start()
-				} label: {
-					NBSheetButton(title: .localized("Start Signing"))
+				if _isSigning {
+					Button() {
+						_isLogsPresenting = true
+					} label: {
+						NBSheetButton(title: .localized("Show Logs"))
+					}
+					.tint(.secondary)
+					.compatMatchedTransitionSource(id: "showLogs", ns: _namespace)
+				} else {
+					Button() {
+						_start()
+					} label: {
+						NBSheetButton(title: .localized("Start Signing"))
+					}
 				}
 			}
 			.toolbar {
@@ -84,6 +98,10 @@ struct SigningView: View {
 				)
 			}
 			.photosPicker(isPresented: $_isImagePickerPresenting, selection: $_selectedPhoto)
+			.fullScreenCover(isPresented: $_isLogsPresenting ) {
+				LogsView(manager: LogsManager.shared)
+					.compatNavigationTransition(id: "showLogs", ns: _namespace)
+			}
 			.onChange(of: _selectedPhoto) { newValue in
 				guard let newValue else { return }
 				
@@ -94,7 +112,6 @@ struct SigningView: View {
 					}
 				}
 			}
-			.disabled(_isSigning)
 			.animation(.smooth, value: _isSigning)
 		}
 		.onAppear {
@@ -249,8 +266,11 @@ extension SigningView {
 
 		let generator = UIImpactFeedbackGenerator(style: .light)
 		generator.impactOccurred()
+		_isLogsPresenting = _optionsManager.options.signingLogs
 		_isSigning = true
-		
+#if DEBUG
+		LogsManager.shared.startCapture()
+#endif
 		FR.signPackageFile(
 			app,
 			using: _temporaryOptions,
