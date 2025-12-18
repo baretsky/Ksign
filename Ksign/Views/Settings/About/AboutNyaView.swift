@@ -86,7 +86,7 @@ struct AboutNyaView: View {
 	private func _showPatchNotes() {
 		UIAlertController.showAlertWithOk(
             title: .localized("From Nyasami, Version \(Bundle.main.version)"),
-            message: .localized("This version introduces:\n\n- Bulk Signing (select multiple apps and click on the sign icon)\n- App can be run in background finally! (helpful with downloading ipas and installing them) \n- Logs tab so you can see what's going on under the hood\n- Added experiments signing option from Feather\n- Reset cache and storage in reset tab\n- Ability to bundle default certificate with app\n- Ability to edit text files and make a new one in file manager\n- A few small UI changes"),
+            message: .localized("This version introduces:\n\n- Notification when finished downloading in background (you can enable in App Features settings) \n- Button that filled bundle ID with certificate's App ID\n- remove support of ksign certificate file\n- prefix / suffix for app name in signing config- refactored the IPA Downloader to just Downloads new features"),
 			isCancel: true,
 			thankYou: true
 		)
