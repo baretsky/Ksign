@@ -161,7 +161,12 @@ private extension DownloaderView {
     func _addDownload() {
         UIAlertController.showAlertWithTextBox(
             title: .localized("Enter URL"),
-            message: .localized("Enter the URL of the website containing the IPA file (Direct install/ITMS Services) or URL to the IPA file, supported: \nhttps://example.com\nitms-services://?url=https://example.com\nhttps://example.com/app.ipa"),
+            message: .localized("""
+Enter the URL of the website containing the IPA file (Direct install/ITMS Services) or URL to the IPA file, supported: 
+- https://example.com
+- itms-services://?url=https://example.com
+- https://example.com/app.ipa
+"""),
             textFieldPlaceholder: .localized("https://example.com"),
             submit: .localized("OK"),
             cancel: .localized("Cancel"),

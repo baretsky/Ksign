@@ -1597,6 +1597,7 @@
       }
     },
     "Choose an action" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2560,6 +2561,17 @@
         }
       }
     },
+    "Downloaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã tải về"
+          }
+        }
+      }
+    },
     "Downloaded Apps" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2567,6 +2579,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ứng dụng đã tải"
+          }
+        }
+      }
+    },
+    "Downloading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải"
           }
         }
       }
@@ -2943,6 +2966,7 @@
       }
     },
     "Enter the URL of the website containing the IPA file" : {
+      "extractionState" : "stale",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -2952,7 +2976,30 @@
         }
       }
     },
+    "Enter the URL of the website containing the IPA file (Direct install/ITMS Services) or URL to the IPA file, supported: \n- https://example.com\n- itms-services://?url=https://example.com\n- https://example.com/app.ipa" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập URL của trang web chứa tệp IPA (cài đặt trực tiếp / ITMS Services) hoặc URL trực tiếp đến tệp IPA. Các định dạng được hỗ trợ:\n- https://example.com\n- itms-services://?url=https://example.com\n- https://example.com/app.ipa"
+          }
+        }
+      }
+    },
+    "Enter URL" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập URL"
+          }
+        }
+      }
+    },
     "Enter Website URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -4187,6 +4234,7 @@
       }
     },
     "Go" : {
+      "extractionState" : "stale",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -4934,6 +4982,7 @@
       }
     },
     "Importing %lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -5816,6 +5865,7 @@
       }
     },
     "No downloaded IPAs" : {
+      "extractionState" : "stale",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -5907,6 +5957,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không có Tweak"
+          }
+        }
+      }
+    },
+    "Notify when download is completed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thông báo khi hoàn tất tải về"
           }
         }
       }
@@ -6681,6 +6742,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bảo vệ PPQ"
+          }
+        }
+      }
+    },
+    "Prefix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiền tố"
+          }
+        }
+      }
+    },
+    "Prefix/Suffix will be added to the app name before and after the app name." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiền tố / Hậu tố sẽ được thêm vào tên app ở trước và sau tên app"
           }
         }
       }
@@ -7600,6 +7683,17 @@
         }
       }
     },
+    "Reset the applications sources, certificate, apps, and general contents." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt lại nguồn ứng dụng, chứng chì, ứng dụng và vài thứ nữa."
+          }
+        }
+      }
+    },
     "Reset the applications sources, certificates, apps, and general contents" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8198,6 +8292,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hiển thị Dylibs"
+          }
+        }
+      }
+    },
+    "Show logs when signing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị nhật ký khi ký"
           }
         }
       }
@@ -9149,6 +9254,17 @@
         }
       }
     },
+    "Suffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hậu tố"
+          }
+        }
+      }
+    },
     "Supports importing from KravaSign/MapleSign and ESign" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -9467,6 +9583,17 @@
         }
       }
     },
+    "This will notify you when the download is completed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cái này sẽ gửi thông báo khi tải về trong nền hoàn tất."
+          }
+        }
+      }
+    },
     "This will remove app after signed (Downloaded apps)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9474,6 +9601,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cái này sẽ xoá ứng dụng sau khi ký (ứng dụng đã tải)"
+          }
+        }
+      }
+    },
+    "This will show the logs of the signing process when you start signing." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cái này sẽ hiện nhật ký khi bắt đầu ký."
           }
         }
       }
@@ -10050,6 +10188,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Truy cập trang web"
+          }
+        }
+      }
+    },
+    "Web Browser" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trình duyệt"
           }
         }
       }
