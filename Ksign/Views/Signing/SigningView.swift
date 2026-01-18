@@ -309,7 +309,7 @@ extension SigningView {
 			using: _temporaryOptions,
 			icon: appIcon,
 			certificate: _selectedCert()
-		) { [self] error in
+		) { [self] _, error in
 			if let error {
 				let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel) { _ in
 					dismiss()

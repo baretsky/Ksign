@@ -28,7 +28,7 @@ class FilesViewModel: ObservableObject {
             switch self {
             case .name:    .localized("Name")
             case .date:    .localized("Date")
-            case .type:    .localized("Type")
+            case .type:    .localized("File Type")
             }
         }
     }

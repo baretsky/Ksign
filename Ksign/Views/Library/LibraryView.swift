@@ -9,30 +9,38 @@ import SwiftUI
 import CoreData
 import NimbleViews
 
+struct BulkSigningSession: Identifiable {
+    let id = UUID()
+    let apps: [AppInfoPresentable]
+    let shouldInstall: Bool
+}
+
 // MARK: - View
 struct LibraryView: View {
-	@StateObject var downloadManager = DownloadManager.shared
+	@StateObject private var _downloadManager = DownloadManager.shared
 	
-	@State private var _selectedInfoAppPresenting: AnyApp?
-	@State private var _selectedSigningAppPresenting: AnyApp?
-	@State private var _selectedInstallAppPresenting: AnyApp?
-	@State private var _selectedAppDylibsPresenting: AnyApp?
-	@State private var _isBulkSigningPresenting = false
-	@State private var _isImportingPresenting = false
-	@State private var _isDownloadingPresenting = false
-
-	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
-	@State private var _searchText = ""
-	@State private var _selectedTab: Int = 0 // 0 for Downloaded, 1 for Signed
+	    @State private var _selectedInfoAppPresenting: AnyApp?
+		@State private var _selectedSigningAppPresenting: AnyApp?
+		@State private var _selectedInstallAppPresenting: AnyApp?
+		@State private var _selectedAppDylibsPresenting: AnyApp?
+		@State private var _bulkSigningSession: BulkSigningSession?
+		@State private var _isBulkInstallPresenting = false
+		@State private var _isImportingPresenting = false
+		@State private var _isDownloadingPresenting = false
 	
+		@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
+		@State private var _searchText = ""
+		@State private var _selectedTab: Int = 0 // 0 for Downloaded, 1 for Signed
+		
+	    // MARK: Bulk Install
+	    @State private var _bulkInstallConfig: BulkInstallConfiguration? = nil
 	// MARK: Edit Mode
 	@State private var _isEditMode = false
 	@State private var _selectedApps: Set<String> = []
 	
 	@Namespace private var _namespace
 	
-	// horror
-	private func filteredAndSortedApps<T>(from apps: FetchedResults<T>) -> [T] where T: NSManagedObject {
+	private func _filterAndSortApps<T>(from apps: FetchedResults<T>) -> [T] where T: NSManagedObject {
 		apps.filter {
 			_searchText.isEmpty ||
 			(($0.value(forKey: "name") as? String)?.localizedCaseInsensitiveContains(_searchText) ?? false)
@@ -40,11 +48,11 @@ struct LibraryView: View {
 	}
 	
 	private var _filteredSignedApps: [Signed] {
-		filteredAndSortedApps(from: _signedApps)
+		_filterAndSortApps(from: _signedApps)
 	}
 	
 	private var _filteredImportedApps: [Imported] {
-		filteredAndSortedApps(from: _importedApps)
+		_filterAndSortApps(from: _importedApps)
 	}
 	
 	// MARK: Fetch
@@ -71,6 +79,9 @@ struct LibraryView: View {
 				.pickerStyle(SegmentedPickerStyle())
 				.padding(.horizontal)
 				.padding(.vertical, 8)
+                .onChange(of: _selectedTab) { _ in
+                    _selectedApps.removeAll()
+                }
 				
 				NBListAdaptable {
 					if _selectedTab == 0 {
@@ -144,12 +155,45 @@ struct LibraryView: View {
 					}
 					
 					ToolbarItemGroup(placement: .topBarTrailing) {
-						Button {
-							_isBulkSigningPresenting = true
-						} label: {
-							NBButton(.localized("Sign"), systemImage: "signature", style: .icon)
-						}
-                        .disabled(_selectedApps.isEmpty)
+                        if _selectedTab == 1 {
+                            Button {
+                                _isBulkInstallPresenting = true
+                            } label: {
+                                NBButton(.localized("Install"), systemImage: "square.and.arrow.down", style: .icon)
+                            }
+                            .disabled(_selectedApps.isEmpty)
+                        }
+                        
+                        if _selectedTab == 0 {
+                            Menu {
+                                Button {
+                                    _bulkSigningSession = BulkSigningSession(
+                                        apps: _selectedApps.compactMap { id in
+                                            (_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                                            ?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                                        },
+                                        shouldInstall: false
+                                    )
+                                } label: {
+                                    Label(.localized("Sign Only"), systemImage: "signature")
+                                }
+                                
+                                Button {
+                                    _bulkSigningSession = BulkSigningSession(
+                                        apps: _selectedApps.compactMap { id in
+                                            (_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                                            ?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                                        },
+                                        shouldInstall: true
+                                    )
+                                } label: {
+                                    Label(.localized("Sign & Install"), systemImage: "square.and.arrow.down")
+                                }
+                            } label: {
+                                NBButton(.localized("Sign"), systemImage: "signature", style: .icon)
+                            }
+                            .disabled(_selectedApps.isEmpty)
+                        }
 						
 						Button {
 							_bulkDeleteSelectedApps()
@@ -193,17 +237,31 @@ struct LibraryView: View {
                 DylibsView(app: app.base)
 					.compatNavigationTransition(id: app.base.uuid ?? "", ns: _namespace)
 			}
-			.fullScreenCover(isPresented: $_isBulkSigningPresenting) {
-				BulkSigningView(apps: _selectedApps.compactMap { id in
-					(_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
-					?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
-				})
+			.fullScreenCover(item: $_bulkSigningSession) { session in
+				BulkSigningView(
+                    apps: session.apps,
+                    shouldInstall: session.shouldInstall
+                )
 				.compatNavigationTransition(id: _selectedApps.joined(separator: ","), ns: _namespace)
 				.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.bulkSigningFinished"))) { notification in
 					_toggleEditMode()
 					_selectedTab = 1
 				}
 			}
+            .sheet(isPresented: $_isBulkInstallPresenting) {
+                BulkInstallView(
+                    apps: _bulkInstallConfig?.apps ?? _selectedApps.compactMap { id in
+                        (_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                        ?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                    },
+                    signingContext: _bulkInstallConfig
+                )
+            }
+            .onChange(of: _isBulkInstallPresenting) { isPresented in
+                if !isPresented {
+                    _bulkInstallConfig = nil
+                }
+            }
 			.sheet(isPresented: $_isImportingPresenting) {
 				FileImporterRepresentableView(
 					allowedContentTypes:  [.ipa, .tipa],
@@ -213,8 +271,8 @@ struct LibraryView: View {
 						
 						for ipas in urls {
 							let id = "FeatherManualDownload_\(UUID().uuidString)"
-							let dl = downloadManager.startArchive(from: ipas, id: id)
-							downloadManager.handlePachageFile(url: ipas, dl: dl) { err in
+							let dl = _downloadManager.startArchive(from: ipas, id: id)
+							_downloadManager.handlePachageFile(url: ipas, dl: dl) { err in
 								if let error = err {
 									UIAlertController.showAlertWithOk(title: "Error", message: .localized("Whoops!, something went wrong when extracting the file. \nMaybe try switching the extraction library in the settings?"))
 								}
@@ -230,7 +288,7 @@ struct LibraryView: View {
 				}
 				Button(.localized("OK")) {
 					if let url = URL(string: _alertDownloadString) {
-						_ = downloadManager.startDownload(from: url, id: "FeatherManualDownload_\(UUID().uuidString)")
+						_ = _downloadManager.startDownload(from: url, id: "FeatherManualDownload_\(UUID().uuidString)")
 					}
 				}
 			}
@@ -238,6 +296,27 @@ struct LibraryView: View {
                 if let app = _signedApps.first {
                     _selectedInstallAppPresenting = AnyApp(base: app)
 				}
+			}
+			.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.bulkSignAndInstall"))) { notification in
+				_toggleEditMode()
+				_selectedTab = 1
+                
+                if let config = notification.object as? BulkInstallConfiguration {
+                    self._bulkInstallConfig = config
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self._isBulkInstallPresenting = true
+                    }
+                } else if let signedUUIDs = notification.object as? [String] {
+                    self._bulkInstallConfig = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        let newApps = self._signedApps.filter { app in
+                            guard let uuid = app.uuid else { return false }
+                            return signedUUIDs.contains(uuid)
+                        }
+                        self._selectedApps = Set(newApps.compactMap { $0.uuid })
+                        self._isBulkInstallPresenting = true
+                    }
+                }
 			}
         }
     }

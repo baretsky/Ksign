@@ -34,7 +34,7 @@ struct InstallPreviewView: View {
 		let viewModel = InstallerStatusViewModel()
 		self._viewModel = StateObject(wrappedValue: viewModel)
 		#if SERVER
-		self._installer = StateObject(wrappedValue: try! ServerInstaller(app: app, viewModel: viewModel))
+		self._installer = StateObject(wrappedValue: try! ServerInstaller())
 		#endif
 	}
 	
@@ -50,7 +50,7 @@ struct InstallPreviewView: View {
 		.padding()
 		#if SERVER
 		.sheet(isPresented: $_isWebviewPresenting) {
-			SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
+			SafariRepresentableView(url: installer.pageEndpoint(for: app.uuid!)).ignoresSafeArea()
 		}
 		.onReceive(viewModel.$status) { newStatus in
 			#if DEBUG
@@ -58,7 +58,7 @@ struct InstallPreviewView: View {
 			#endif
 			if case .ready = newStatus {
 				if _serverMethod == 0 {
-					UIApplication.shared.open(URL(string: installer.iTunesLink)!)
+					UIApplication.shared.open(URL(string: installer.iTunesLink(for: app.uuid!))!)
 				} else if _serverMethod == 1 {
 					_isWebviewPresenting = true
 				}
@@ -102,7 +102,7 @@ struct InstallPreviewView: View {
 				if await !isSharing {
 					#if SERVER
 					await MainActor.run {
-						installer.packageUrl = packageUrl
+                        installer.addApp(app, packageUrl: packageUrl, viewModel: viewModel)
 						viewModel.status = .ready
 					}
 					#elseif IDEVICE

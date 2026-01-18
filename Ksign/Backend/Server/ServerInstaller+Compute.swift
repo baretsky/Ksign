@@ -11,33 +11,34 @@ import Foundation
 import UIKit.UIGraphicsImageRenderer
 
 extension ServerInstaller {
-	var plistEndpoint: URL {
+    func plistEndpoint(for uuid: String) -> URL {
 		var comps = URLComponents()
 		comps.scheme = ServerInstaller.getServerMethod() == 1 ? "http" : "https"
 		comps.host = Self.sni
-		comps.path = "/\(id).plist"
+		comps.path = "/\(uuid).plist"
 		comps.port = port
 		return comps.url!
 	}
 
-	var payloadEndpoint: URL {
+    func payloadEndpoint(for uuid: String) -> URL {
 		var comps = URLComponents()
 		comps.scheme = ServerInstaller.getServerMethod() == 1 ? "http" : "https"
 		comps.host = Self.sni
-		comps.path = "/\(id).ipa"
+		comps.path = "/\(uuid).ipa"
 		comps.port = port
 		return comps.url!
 	}
 	
-	var pageEndpoint: URL {
+	func pageEndpoint(for uuid: String) -> URL {
 		var comps = URLComponents()
 		comps.scheme = ServerInstaller.getServerMethod() == 1 ? "http" : "https"
 		comps.host = Self.sni
-		comps.path = "/install"
+		comps.path = "/install/\(uuid)"
 		comps.port = port
 		return comps.url!
 	}
 	
+    /*
 	var externalServerLink: String {
 		let baseUrl = "https://api.palera.in/genPlist?bundleid=\(app.identifier!)&name=\(app.name!)&version=\(app.version!)&fetchurl=\(self.payloadEndpoint.absoluteString)"
 		let encodedBaseUrl = baseUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
@@ -45,14 +46,17 @@ extension ServerInstaller {
 		
 		return finalEncodedUrl
 	}
+     */
 
-	var iTunesLink: String {
-		_iTunesLink(with: plistEndpoint.absoluteString)
+    func iTunesLink(for uuid: String) -> String {
+        _iTunesLink(with: plistEndpoint(for: uuid).absoluteString)
 	}
 	
+    /*
 	var iTunesLinkExternal: String {
 		_iTunesLink(with: externalServerLink)
 	}
+     */
 	
 	private func _iTunesLink(with url: String) -> String {
 		return "itms-services://?action=download-manifest&url=\(url)"
@@ -93,6 +97,7 @@ extension ServerInstaller {
 		return image.pngData()!
 	}
 
+    /*
 	var html: String {
 		"""
 		<html style="background-color: black;">
@@ -100,13 +105,14 @@ extension ServerInstaller {
 		</html>
 		"""
 	}
+     */
 
-	var installManifest: [String: Any] {[
+    func installManifest(for app: AppInfoPresentable, uuid: String) -> [String: Any] {[
 		"items": [[
 			"assets": [
 				[
 					"kind": "software-package",
-					"url": payloadEndpoint.absoluteString,
+					"url": payloadEndpoint(for: uuid).absoluteString,
 				],
 				[
 					"kind": "display-image",
@@ -122,9 +128,9 @@ extension ServerInstaller {
 		],],
 	]}
 
-	var installManifestData: Data {
-		(try? PropertyListSerialization.data(
-			fromPropertyList: installManifest,
+    func installManifestData(for app: AppInfoPresentable, uuid: String) -> Data {
+        (try? PropertyListSerialization.data(
+            fromPropertyList: installManifest(for: app, uuid: uuid),
 			format: .xml,
 			options: .zero
 		)) ?? .init()

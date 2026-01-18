@@ -12,7 +12,7 @@ import OSLog
 
 final class SigningHandler: NSObject {
 	private let _fileManager = FileManager.default
-	private let _uuid = UUID().uuidString
+	public let uuid = UUID().uuidString
 	private var _movedAppPath: URL?
 	// using uuid string is the best way to find the
 	// app we want to sign, it does not matter what
@@ -33,7 +33,7 @@ final class SigningHandler: NSObject {
 		self._app = app
 		self._options = options
 		self._uniqueWorkDir = _fileManager.temporaryDirectory
-			.appendingPathComponent("FeatherSigning_\(_uuid)", isDirectory: true)
+			.appendingPathComponent("FeatherSigning_\(uuid)", isDirectory: true)
 		super.init()
 	}
 	
@@ -51,7 +51,7 @@ final class SigningHandler: NSObject {
 		
 		try _fileManager.copyItem(at: appUrl, to: movedAppURL)
 		_movedAppPath = movedAppURL
-		print("[\(_uuid)] Moved Payload to: \(movedAppURL.path)")
+		print("[\(uuid)] Moved Payload to: \(movedAppURL.path)")
 	}
 	
 	func modify() async throws {
@@ -140,7 +140,7 @@ final class SigningHandler: NSObject {
 		destinationURL = destinationURL.appendingPathComponent(movedAppPath.lastPathComponent)
 		
 		try _fileManager.moveItem(at: movedAppPath, to: destinationURL)
-		print("[\(_uuid)] Moved App to: \(destinationURL.path)")
+		print("[\(uuid)] Moved App to: \(destinationURL.path)")
 		try? _fileManager.removeItem(at: _uniqueWorkDir)
 	}
 	
@@ -155,14 +155,14 @@ final class SigningHandler: NSObject {
             let bundle = Bundle(url: appUrl)
 
             Storage.shared.addSigned(
-                uuid: _uuid,
+                uuid: uuid,
                 certificate: _options.doAdhocSigning ? nil : appCertificate,
                 appName: bundle?.name,
                 appIdentifier: bundle?.bundleIdentifier,
                 appVersion: bundle?.version,
                 appIcon: bundle?.iconFileName
             ) { _ in
-                Logger.signing.info("[\(self._uuid)] Added to database")
+                Logger.signing.info("[\(self.uuid)] Added to database")
                 continuation.resume()
             }
 		}
@@ -170,7 +170,7 @@ final class SigningHandler: NSObject {
 	
 	private func _directory() async throws -> URL {
 		// Documents/App/Signed/\(UUID)
-		_fileManager.signed(_uuid)
+		_fileManager.signed(uuid)
 	}
 	
 	func clean() async throws {
