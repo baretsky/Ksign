@@ -26,7 +26,7 @@ struct LibraryView: View {
 	@State private var _selectedTab: Int = 0 // 0 for Downloaded, 1 for Signed
 	
 	// MARK: Edit Mode
-	@State private var _isEditMode = false
+    @State private var _isEditMode: EditMode = .inactive
 	@State private var _selectedApps: Set<String> = []
 	
 	@Namespace private var _namespace
@@ -85,7 +85,6 @@ struct LibraryView: View {
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
 									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
-									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
 								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
@@ -103,7 +102,6 @@ struct LibraryView: View {
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
 									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
-									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
 								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
@@ -134,15 +132,10 @@ struct LibraryView: View {
                 }
             }
 			.toolbar {
-				if _isEditMode {
-					ToolbarItem(placement: .topBarLeading) {
-						Button {
-							_toggleEditMode()
-						} label: {
-							NBButton(.localized("Done"), systemImage: "", style: .text)
-						}
-					}
-					
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
+                if _isEditMode.isEditing {
 					ToolbarItemGroup(placement: .topBarTrailing) {
 						Button {
 							_isBulkSigningPresenting = true
@@ -159,14 +152,6 @@ struct LibraryView: View {
 						.disabled(_selectedApps.isEmpty)
 					}
 				} else {
-					ToolbarItem(placement: .topBarLeading) {
-						Button {
-							_toggleEditMode()
-						} label: {
-							NBButton(.localized("Edit"), systemImage: "", style: .text)
-						}
-					}
-					
 					NBToolbarMenu(
 						systemImage: "plus",
 						style: .icon,
@@ -176,6 +161,7 @@ struct LibraryView: View {
                     }
 				}
 			}
+            .environment(\.editMode, $_isEditMode)
 			.sheet(item: $_selectedInfoAppPresenting) { app in
 				LibraryInfoView(app: app.base)
 			}
@@ -200,7 +186,6 @@ struct LibraryView: View {
 				})
 				.compatNavigationTransition(id: _selectedApps.joined(separator: ","), ns: _namespace)
 				.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.bulkSigningFinished"))) { notification in
-					_toggleEditMode()
 					_selectedTab = 1
 				}
 			}
@@ -258,15 +243,6 @@ extension LibraryView {
 
 // MARK: - Extension: View (Edit Mode Functions)
 extension LibraryView {
-	private func _toggleEditMode() {
-		withAnimation(.easeInOut(duration: 0.3)) {
-			_isEditMode.toggle()
-			if !_isEditMode {
-				_selectedApps.removeAll()
-			}
-		}
-	}
-	
 	private func _bulkDeleteSelectedApps() {
 		let appsToDelete = _selectedApps
 		
@@ -282,7 +258,6 @@ extension LibraryView {
 		
 		DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 			_selectedApps.removeAll()
-			 _toggleEditMode()
 		}
 	}
 }

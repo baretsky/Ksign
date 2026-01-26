@@ -11,7 +11,17 @@ extension Text {
     func bg() -> some View {
         self.padding(.horizontal, 12)
             .frame(height: 29)
-            .background(Color(uiColor: .quaternarySystemFill))
+            .modifier(style())
             .clipShape(Capsule())
+    }
+}
+
+struct style: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect()
+        } else {
+            content.background(Color(uiColor: .quaternarySystemFill))
+        }
     }
 }

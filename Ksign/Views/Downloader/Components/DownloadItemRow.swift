@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AltSourceKit
 
 // Download Item Row
 struct DownloadItemRow: View {
@@ -63,23 +64,27 @@ struct DownloadItemRow: View {
                 Text(item.isFinished ? item.formattedFileSize : item.progressText)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
-                if !item.isFinished {
-                    ProgressView(value: item.progress)
-                        .progressViewStyle(LinearProgressViewStyle())
-                        .accentColor(.accentColor)
-                }
             }
             
             Spacer()
             
             if !item.isFinished {
-                Button {
-                    deleteItem(item)
-                } label: {
-                    Image(systemName: "stop.circle")
-                        .font(.system(size: 32))
-                        .foregroundColor(.accentColor)
+                ZStack {
+                    Circle()
+                        .trim(from: 0, to: item.progress)
+                        .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2.3, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 31, height: 31)
+                        .animation(.smooth, value: item.progress)
+
+                    Image(systemName: item.progress >= 0.75 ? "archivebox" : "square.fill")
+                        .foregroundStyle(.tint)
+                        .font(.footnote).bold()
+                }
+                .onTapGesture {
+                    if item.progress <= 0.75 {
+                        deleteItem(item)
+                    }
                 }
                 .buttonStyle(.plain)
             }
@@ -157,6 +162,7 @@ struct DownloadItemRow: View {
 
 struct AppStoreDownloadItemRow: View {
     @ObservedObject var download: Download
+//    let app: ASRepository.App
     
     var body: some View {
         HStack(spacing: 12) {
@@ -183,23 +189,26 @@ struct AppStoreDownloadItemRow: View {
                 Text(download.progressText)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
-                ProgressView(value: download.overallProgress)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.accentColor)
             }
             
             Spacer()
-            if download.unpackageProgress == 0 {
-                Button {
-                    DownloadManager.shared.cancelDownload(download)
-                } label: {
-                    Image(systemName: "stop.circle")
-                        .font(.system(size: 32))
-                        .foregroundColor(.accentColor)
+            ZStack {
+                Circle()
+                    .trim(from: 0, to: download.overallProgress)
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2.3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: 31, height: 31)
+                    .animation(.smooth, value:  download.overallProgress)
+
+                Image(systemName: download.overallProgress >= 0.75 ? "archivebox" : "square.fill")
+                    .foregroundStyle(.tint)
+                    .font(.footnote).bold()
                 }
-                .buttonStyle(.plain)
-            }
+                .onTapGesture {
+                    if download.overallProgress <= 0.75 {
+                        DownloadManager.shared.cancelDownload(download)
+                    }
+                }
         }
         .padding(.vertical, 6)
         .contentShape(Rectangle())

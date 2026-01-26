@@ -12,7 +12,7 @@ import NimbleViews
 // MARK: - View
 struct LibraryCellView: View {
 	@AppStorage("Feather.libraryCellAppearance") private var _libraryCellAppearance: Int = 0
-
+    @Environment(\.editMode) private var editMode
 	var certInfo: Date.ExpirationInfo? {
 		Storage.shared.getCertificate(from: app)?.expiration?.expirationInfo()
 	}
@@ -22,18 +22,17 @@ struct LibraryCellView: View {
 	@Binding var selectedSigningAppPresenting: AnyApp?
 	@Binding var selectedInstallAppPresenting: AnyApp?
 	@Binding var selectedAppDylibsPresenting: AnyApp?
-	@Binding var isEditMode: Bool
 	@Binding var selectedApps: Set<String>
 	@State private var _showActionSheet = false
 	
 	private var _isSelected: Bool {
 		selectedApps.contains(app.uuid ?? "")
 	}
-	
 	// MARK: Body
 	var body: some View {
-		HStack(spacing: 9) {
-			if isEditMode {
+        let isEditing = editMode?.wrappedValue == .active
+        HStack(spacing: 9) {
+			if isEditing {
 				Button {
 					_toggleSelection()
 				} label: {
@@ -54,7 +53,7 @@ struct LibraryCellView: View {
 			
 			Spacer()
 			
-			if !isEditMode {
+			if !isEditing {
 				if app.isSigned, let certInfo = certInfo {
 					HStack(spacing: 4) {
 						Image(systemName: "clock")
@@ -79,7 +78,7 @@ struct LibraryCellView: View {
 		.scaleEffect(_isSelected ? 0.98 : 1.0)
 		.contentShape(Rectangle())
 		.onTapGesture {
-			if isEditMode {
+			if isEditing {
 				_toggleSelection()
 			} else {
 				_showActionSheet = true
@@ -90,17 +89,17 @@ struct LibraryCellView: View {
 			isPresented: $_showActionSheet,
 			titleVisibility: .visible
 		) {
-			if !isEditMode {
+			if !isEditing {
 				_actionSheetButtons(for: app)
 			}
 		}
 		.swipeActions {
-			if !isEditMode {
+			if !isEditing {
 				_actions(for: app)
 			}
 		}
 		.contextMenu {
-			if !isEditMode {
+			if !isEditing {
 				_contextActions(for: app)
 				Divider()
 				_contextActionsExtra(for: app)

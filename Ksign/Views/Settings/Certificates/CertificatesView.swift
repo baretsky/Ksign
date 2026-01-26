@@ -102,11 +102,11 @@ extension CertificatesView {
 			)
 			.padding()
 			.background(
-				RoundedRectangle(cornerRadius: 17)
+				RoundedRectangle(cornerRadius: _cornerRadius)
 					.fill(Color(uiColor: .quaternarySystemFill))
 			)
 			.overlay(
-				RoundedRectangle(cornerRadius: 17)
+				RoundedRectangle(cornerRadius: _cornerRadius)
 					.strokeBorder(
 						_selectedCertBinding.wrappedValue == index ? Color.accentColor : Color.clear,
 						lineWidth: 2
@@ -121,7 +121,15 @@ extension CertificatesView {
 		}
 		.buttonStyle(.plain)
 	}
-	
+    
+    private var _cornerRadius: CGFloat {
+        if #available(iOS 26.0, *) {
+            return 28.0
+        } else {
+            return 17.0
+        }
+    }
+    
 	@ViewBuilder
 	private func _actions(for cert: CertificatePair) -> some View {
 		Button(role: .destructive) {

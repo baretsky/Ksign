@@ -26,7 +26,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           LATEST_OFFICIAL_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
-
+          
+          echo "## Commit: `$COMMIT_MSG` (${{ github.sha }})" >> release_notes.md
           echo "### New in this build (Compared to $LATEST_OFFICIAL_TAG):" >> release_notes.md
             
           CHANGES=$(git log --pretty=format:"* %s (%h)" ${LATEST_OFFICIAL_TAG}..HEAD)
@@ -37,7 +38,7 @@ jobs:
             echo "$CHANGES" >> release_notes.md
           fi
           
-          echo "### SHA: ${{ github.sha }}" >> release_notes.md
+          echo "### Commit SHA: ${{ github.sha }}" >> release_notes.md
           
           cat release_notes.md
 
@@ -47,7 +48,7 @@ jobs:
           
           gh release create beta "packages/Ksign.ipa" \
             --title "Latest Beta Build" \
-            --notes "Commit: $COMMIT_MSG\n\n$(cat release_notes.md)" \
+            --notes "$(cat release_notes.md)" \
             --prerelease \
             --target ${{ github.sha }}
 
