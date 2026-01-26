@@ -1,0 +1,55 @@
+name: Beta Build
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Beta
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build
+        run: |
+          make
+
+      - name: Create Beta Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: beta-${{ github.run_number }}
+          name: Beta Build ${{ github.run_number }}
+          body: |
+            Automated beta build.
+            Commit: ${{ github.sha }}
+          draft: false
+          prerelease: true
+          files: |
+            packages/Ksign.ipa
+
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          REPO="${{ github.repository }}"
+          TAG="beta-${{ github.run_number }}"
+          FILENAME="Ksign.ipa"
+          
+          DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$FILENAME"
+          RELEASE_URL="https://github.com/$REPO/releases/tag/$TAG"
+          
+          echo "Sending link to Discord..."
+          
+          curl -v \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"**New Beta Released!**\n\nBuild: \`$TAG\`\nCommit: \`$COMMIT_MSG\`\n\n[**Download IPA**]($DOWNLOAD_URL)\n[View Release]($RELEASE_URL)\"}" \
+            "$DISCORD_WEBHOOK"
