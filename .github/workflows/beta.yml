@@ -26,7 +26,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           LATEST_OFFICIAL_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
-          
+          COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "## Commit: `$COMMIT_MSG` (${{ github.sha }})" >> release_notes.md
           echo "### New in this build (Compared to $LATEST_OFFICIAL_TAG):" >> release_notes.md
             
@@ -44,8 +44,6 @@ jobs:
 
           gh release delete beta --cleanup-tag -y || true
           
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          
           gh release create beta "packages/Ksign.ipa" \
             --title "Latest Beta Build" \
             --notes "$(cat release_notes.md)" \
@@ -59,7 +57,7 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
           REPO="${{ github.repository }}"
-          TAG="beta-${{ github.run_number }}"
+          TAG="beta"
           FILENAME="Ksign.ipa"
           
           DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$FILENAME"
