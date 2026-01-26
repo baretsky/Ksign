@@ -65,7 +65,13 @@ jobs:
           
           echo "Sending link to Discord..."
           
+          jq -n \
+            --arg commit_msg "$COMMIT_MSG" \
+            --arg download_url "$DOWNLOAD_URL" \
+            --arg release_url "$RELEASE_URL" \
+            '{content: "**New Beta Released!**\n\nChanges: `\($commit_msg)`\n\n[**Download IPA**](\($download_url))\n[View Release](\($release_url))"}' > discord_payload.json
+
           curl -v \
             -H "Content-Type: application/json" \
-            -d "{\"content\": \"**New Beta Released!**\n\nChanges: \`$COMMIT_MSG\`\n\n[**Download IPA**]($DOWNLOAD_URL)\n[View Release]($RELEASE_URL)\"}" \
+            -d @discord_payload.json \
             "$DISCORD_WEBHOOK"
