@@ -25,13 +25,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          LATEST_OFFICIAL_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
+
+          echo "### New in this build (Compared to $LATEST_OFFICIAL_TAG):" >> release_notes.md
+            
+          CHANGES=$(git log --pretty=format:"* %s (%h)" ${LATEST_OFFICIAL_TAG}..HEAD)
+            
+          if [ -z "$CHANGES" ]; then
+            echo "* No code changes since $LATEST_OFFICIAL_TAG" >> release_notes.md
+          else
+            echo "$CHANGES" >> release_notes.md
+          fi
+          
+          echo "### SHA: ${{ github.sha }}" >> release_notes.md
+          
+          cat release_notes.md
+
           gh release delete beta --cleanup-tag -y || true
           
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
           gh release create beta "packages/Ksign.ipa" \
             --title "Latest Beta Build" \
-            --notes "Commit: $COMMIT_MSG" \
+            --notes "Commit: $COMMIT_MSG\n\n$(cat release_notes.md)" \
             --prerelease \
             --target ${{ github.sha }}
 
@@ -52,5 +68,5 @@ jobs:
           
           curl -v \
             -H "Content-Type: application/json" \
-            -d "{\"content\": \"**New Beta Released!**\n\nBuild: \`$TAG\`\nCommit: \`$COMMIT_MSG\`\n\n[**Download IPA**]($DOWNLOAD_URL)\n[View Release]($RELEASE_URL)\"}" \
+            -d "{\"content\": \"**New Beta Released!**\n\nChanges: \`$COMMIT_MSG\`\n\n[**Download IPA**]($DOWNLOAD_URL)\n[View Release]($RELEASE_URL)\"}" \
             "$DISCORD_WEBHOOK"
