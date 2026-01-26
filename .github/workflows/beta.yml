@@ -21,19 +21,19 @@ jobs:
         run: |
           make
 
-      - name: Create Beta Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: beta-${{ github.run_number }}
-          name: Beta Build ${{ github.run_number }}
-          body: |
-            Automated beta build.
-            Commit: ${{ github.sha }}
-          draft: false
-          prerelease: true
-          files: |
-            packages/Ksign.ipa
+      - name: Update Beta Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete beta --cleanup-tag -y || true
+          
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          gh release create beta "packages/Ksign.ipa" \
+            --title "Latest Beta Build" \
+            --notes "Commit: $COMMIT_MSG" \
+            --prerelease \
+            --target ${{ github.sha }}
 
       - name: Notify Discord
         env:
