@@ -18,6 +18,7 @@ struct LibraryView: View {
 	@State private var _selectedInstallAppPresenting: AnyApp?
 	@State private var _selectedAppDylibsPresenting: AnyApp?
 	@State private var _isBulkSigningPresenting = false
+    @State private var _isBulkInstallingPresenting = false
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
 
@@ -137,13 +138,21 @@ struct LibraryView: View {
                 }
                 if _isEditMode.isEditing {
 					ToolbarItemGroup(placement: .topBarTrailing) {
-						Button {
-							_isBulkSigningPresenting = true
-						} label: {
-							NBButton(.localized("Sign"), systemImage: "signature", style: .icon)
-						}
-                        .disabled(_selectedApps.isEmpty)
-						
+                        if _selectedTab == 0 {
+                            Button {
+                                _isBulkSigningPresenting = true
+                            } label: {
+                                NBButton(.localized("Sign"), systemImage: "signature", style: .icon)
+                            }
+                            .disabled(_selectedApps.isEmpty)
+                        } else {
+                            Button {
+                                _isBulkInstallingPresenting = true
+                            } label: {
+                                NBButton(.localized("Install"), systemImage: "square.and.arrow.down")
+                            }
+                            .disabled(_selectedApps.isEmpty)
+                        }
 						Button {
 							_bulkDeleteSelectedApps()
 						} label: {
@@ -189,6 +198,14 @@ struct LibraryView: View {
 					_selectedTab = 1
 				}
 			}
+            .sheet(isPresented: $_isBulkInstallingPresenting) {
+                BulkInstallPreviewView(apps: _selectedApps.compactMap { id in
+                    (_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                    ?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+                })
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
 			.sheet(isPresented: $_isImportingPresenting) {
 				FileImporterRepresentableView(
 					allowedContentTypes:  [.ipa, .tipa],
@@ -224,6 +241,15 @@ struct LibraryView: View {
                     _selectedInstallAppPresenting = AnyApp(base: app)
 				}
 			}
+        }
+        .onChange(of: _isEditMode) { state in
+            if !state.isEditing {
+                DispatchQueue.main.asyncAfter(deadline: .now()) {
+                    withAnimation{
+                        _selectedApps.removeAll()
+                    }
+                }
+            }
         }
     }
 }

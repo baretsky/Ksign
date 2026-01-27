@@ -27,7 +27,7 @@ jobs:
         run: |
           LATEST_OFFICIAL_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
           COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "## Commit: `$COMMIT_MSG` (${{ github.sha }})" >> release_notes.md
+          echo "## Commit: \`$COMMIT_MSG\` (${{ github.sha }})" >> release_notes.md
           echo "### New in this build (Compared to $LATEST_OFFICIAL_TAG):" >> release_notes.md
             
           CHANGES=$(git log --pretty=format:"* %s (%h)" ${LATEST_OFFICIAL_TAG}..HEAD)
