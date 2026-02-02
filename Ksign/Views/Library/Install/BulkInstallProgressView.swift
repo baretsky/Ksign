@@ -30,7 +30,6 @@ struct BulkInstallProgressView: View {
     var body: some View {
         VStack {
             InstallProgressView(app: app, viewModel: viewModel)
-            _status()
         }
         #if SERVER
         .sheet(isPresented: $_isWebviewPresenting) {
@@ -90,14 +89,5 @@ struct BulkInstallProgressView: View {
                 }
             }
         }
-    }
-    
-    @ViewBuilder
-    private func _status() -> some View {
-        Text(viewModel.statusLabel)
-            .font(.caption)
-            .minimumScaleFactor(0.5)
-            .animation(.smooth, value: viewModel.statusImage)
-            .lineLimit(1)
     }
 }
