@@ -27,9 +27,6 @@ struct AppearanceView: View {
 	
 	@AppStorage("Feather.accentColor") private var _selectedAccentColor: Int = 0
 	@StateObject private var accentColorManager = AccentColorManager.shared
-	
-    @AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
-    private var _ignoreSolariumLinkedOnCheck: Bool = false
     
 	private let _accentColors: [(name: String, color: Color)] = [
 		(.localized("Default"), Color(red: 0x53/255, green: 0x94/255, blue: 0xF7/255)),
@@ -61,12 +58,6 @@ struct AppearanceView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-            }
-
-            NBSection(.localized("Experiments")) {
-                Toggle(.localized("Enable Liquid Glass"), isOn: $_ignoreSolariumLinkedOnCheck)
-            } footer: {
-                Text(.localized("This enables liquid glass for this app, this requires a restart of the app to take effect."))
             }
 			
 			NBSection(.localized("Sources")) {
@@ -105,9 +96,6 @@ struct AppearanceView: View {
 		.onChange(of: _selectedAccentColor) { _ in
 			accentColorManager.updateGlobalTintColor()
 		}
-        .onChange(of: _ignoreSolariumLinkedOnCheck) { _ in
-            UIApplication.shared.suspendAndReopen()
-        }
     }
 	
 	@ViewBuilder

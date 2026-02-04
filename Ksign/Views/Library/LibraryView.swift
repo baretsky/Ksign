@@ -19,23 +19,24 @@ struct BulkSigningSession: Identifiable {
 struct LibraryView: View {
 	@StateObject private var _downloadManager = DownloadManager.shared
 	
-	    @State private var _selectedInfoAppPresenting: AnyApp?
-		@State private var _selectedSigningAppPresenting: AnyApp?
-		@State private var _selectedInstallAppPresenting: AnyApp?
-		@State private var _selectedAppDylibsPresenting: AnyApp?
-		@State private var _bulkSigningSession: BulkSigningSession?
-		@State private var _isBulkInstallPresenting = false
-		@State private var _isImportingPresenting = false
-		@State private var _isDownloadingPresenting = false
+	@State private var _selectedInfoAppPresenting: AnyApp?
+	@State private var _selectedSigningAppPresenting: AnyApp?
+	@State private var _selectedInstallAppPresenting: AnyApp?
+	@State private var _selectedAppDylibsPresenting: AnyApp?
+	@State private var _bulkSigningSession: BulkSigningSession?
+	@State private var _isBulkInstallPresenting = false
+	@State private var _isImportingPresenting = false
+	@State private var _isDownloadingPresenting = false
+
+	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
+	@State private var _searchText = ""
+	@State private var _selectedTab: Int = 0 // 0 for Downloaded, 1 for Signed
 	
-		@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
-		@State private var _searchText = ""
-		@State private var _selectedTab: Int = 0 // 0 for Downloaded, 1 for Signed
-		
-	    // MARK: Bulk Install
-	    @State private var _bulkInstallConfig: BulkInstallConfiguration? = nil
+	// MARK: Bulk Install
+	@State private var _bulkInstallConfig: BulkInstallConfiguration? = nil
+
 	// MARK: Edit Mode
-	@State private var _isEditMode = false
+    @State private var _isEditMode: EditMode = .inactive
 	@State private var _selectedApps: Set<String> = []
 	
 	@Namespace private var _namespace
@@ -96,7 +97,6 @@ struct LibraryView: View {
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
 									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
-									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
 								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
@@ -114,7 +114,6 @@ struct LibraryView: View {
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
 									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
-									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
 								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
@@ -145,15 +144,10 @@ struct LibraryView: View {
                 }
             }
 			.toolbar {
-				if _isEditMode {
-					ToolbarItem(placement: .topBarLeading) {
-						Button {
-							_toggleEditMode()
-						} label: {
-							NBButton(.localized("Done"), systemImage: "", style: .text)
-						}
-					}
-					
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
+                if _isEditMode.isEditing {
 					ToolbarItemGroup(placement: .topBarTrailing) {
                         if _selectedTab == 1 {
                             Button {
@@ -203,14 +197,6 @@ struct LibraryView: View {
 						.disabled(_selectedApps.isEmpty)
 					}
 				} else {
-					ToolbarItem(placement: .topBarLeading) {
-						Button {
-							_toggleEditMode()
-						} label: {
-							NBButton(.localized("Edit"), systemImage: "", style: .text)
-						}
-					}
-					
 					NBToolbarMenu(
 						systemImage: "plus",
 						style: .icon,
@@ -220,6 +206,7 @@ struct LibraryView: View {
                     }
 				}
 			}
+            .environment(\.editMode, $_isEditMode)
 			.sheet(item: $_selectedInfoAppPresenting) { app in
 				LibraryInfoView(app: app.base)
 			}
@@ -244,7 +231,6 @@ struct LibraryView: View {
                 )
 				.compatNavigationTransition(id: _selectedApps.joined(separator: ","), ns: _namespace)
 				.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.bulkSigningFinished"))) { notification in
-					_toggleEditMode()
 					_selectedTab = 1
 				}
 			}
@@ -319,6 +305,15 @@ struct LibraryView: View {
                 }
 			}
         }
+        .onChange(of: _isEditMode) { state in
+            if !state.isEditing {
+                DispatchQueue.main.asyncAfter(deadline: .now()) {
+                    withAnimation{
+                        _selectedApps.removeAll()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -337,15 +332,6 @@ extension LibraryView {
 
 // MARK: - Extension: View (Edit Mode Functions)
 extension LibraryView {
-	private func _toggleEditMode() {
-		withAnimation(.easeInOut(duration: 0.3)) {
-			_isEditMode.toggle()
-			if !_isEditMode {
-				_selectedApps.removeAll()
-			}
-		}
-	}
-	
 	private func _bulkDeleteSelectedApps() {
 		let appsToDelete = _selectedApps
 		
@@ -361,7 +347,12 @@ extension LibraryView {
 		
 		DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 			_selectedApps.removeAll()
-			 _toggleEditMode()
 		}
 	}
+    
+    private func _toggleEditMode() {
+        withAnimation {
+            _isEditMode = _isEditMode.isEditing ? .inactive : .active
+        }
+    }
 }

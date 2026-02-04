@@ -46,7 +46,7 @@ struct FeatherApp: App {
 	}
 	
 	private func _handleURL(_ url: URL) {
-		if url.scheme == "feather" {
+		if url.scheme == "ksign" {
 			if let fullPath = url.validatedScheme(after: "/source/") {
 				FR.handleSource(fullPath) { }
 			}

@@ -14,7 +14,7 @@ public class NBFetchService {
 		case invalidURL
 		case networkError(Error)
 		case noData
-		case parsingError(Error)
+		case parsingError(Any)
 		
 		public var errorDescription: String? {
 			switch self {
@@ -25,7 +25,7 @@ public class NBFetchService {
 			case .noData:
 				return "No data received."
 			case .parsingError(let error):
-				return "Failed to parse data: \(error.localizedDescription)"
+				return "Failed to parse data: \(error)"
 			}
 		}
 	}
@@ -67,7 +67,23 @@ extension NBFetchService {
 					let decoder = JSONDecoder()
 					let decodedData = try decoder.decode(T.self, from: data)
 					completion(.success(decodedData))
+				} catch let decodingError as DecodingError {
+					if case .dataCorrupted(let context) = decodingError {
+						
+						if let underlyingError = context.underlyingError as NSError? {
+							
+                            if let debugDesc = underlyingError.userInfo["NSDebugDescription"] {
+                                print(debugDesc)
+                                completion(.failure(NBFetchServiceError.parsingError(debugDesc)))
+                            } else {
+                                print(decodingError)
+                                completion(.failure(NBFetchServiceError.parsingError(decodingError)))
+                            }
+						}
+					}
+					
 				} catch {
+                    print(error)
 					completion(.failure(NBFetchServiceError.parsingError(error)))
 				}
 			}
